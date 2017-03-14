@@ -8,9 +8,10 @@ module.exports = {
      var salt = bcrypt.genSaltSync(10);
     var hashedPass = bcrypt.hashSync(req.body.password, salt);
     Users.create({
-      user: req.body.user,
+      username: req.body.username,
       // password: req.body.password,
       password: hashedPass,
+      email: req.body.email,
       salt: salt
 
     })
@@ -21,7 +22,7 @@ module.exports = {
    login (req, res) {
         Users.findOne({
           where: {
-            user: req.body.user
+            email: req.body.email
           }
         })
           .then(user => {
@@ -33,8 +34,15 @@ module.exports = {
             var input = bcrypt.hashSync(req.body.password, user.salt);
             console.log(`hashed input: ${input}, stored password: ${user.password}`);
             if (input === user.password) {
-              var token = jwt.encode({ id: user.id, name: user.name }, appSecrets.jwtSecret);
-              return res.status(200).send(token);
+              console.log('hello from inside input')
+              var token = jwt.encode({ id: user.id, username: user.username }, appSecrets.secret);
+              console.log(token)
+
+              var json = {
+              user: user,
+              token: token
+              };
+              return res.status(200).send(json);
             } else {
               return res.status(401).send({ message: "No such email or wrong password." });
             }
